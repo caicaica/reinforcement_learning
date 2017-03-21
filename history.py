@@ -57,8 +57,10 @@ class History:
             axis=-1
         )
 
-        padding = max(self.nbr_actions - index + 1, 0)
         index_min = max(index - 1 - self.nbr_actions, 0)
+        padding = max(
+            self.nbr_actions - len(self.past_actions[index_min:index-1]), 0
+        )
         sample_action = np.array(
             padding*[-1]+self.past_actions[index_min:index-1]
         )

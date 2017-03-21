@@ -75,7 +75,7 @@ class Network:
 
         self.model = self._build_model()
         if self.weight_fname:
-            self.load_weights()
+            self.load_weights(self.weight_fname)
 
     def _bottleneck(self, input_layer, nbr_filters):
         """Bottleneck module

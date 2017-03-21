@@ -41,16 +41,24 @@ if __name__ == '__main__':
     env = wrappers.Monitor(env, directory=outdir, force=True)
     env.seed(0)
 
-    weight_fname = None
-    use_actions = False
-    nbr_obs = 2
+    weight_fname = '/Users/matthieule/temp/test.h5'
+    use_actions = True
+    nbr_obs = 4
+    nbr_past_actions = 2
     ob = env.reset()
     input_shape = (ob.shape[0], ob.shape[1], nbr_obs*ob.shape[2])
     network = Network(input_shape=input_shape, nbr_action=env.action_space.n,
-                      use_actions=use_actions, weight_fname=weight_fname)
-    history = History(obs_shape=ob.shape, nbr_obs=nbr_obs, nbr_past_actions=0,
-                      use_actions=network.use_actions, buffer_size=10)
-    agent = DQNAgent(env.action_space, network, history)
+                      use_actions=use_actions, weight_fname=weight_fname,
+                      nbr_previous_action=nbr_obs + nbr_past_actions)
+    history = History(obs_shape=ob.shape, nbr_obs=nbr_obs, nbr_past_actions=nbr_past_actions,
+                      use_actions=network.use_actions, buffer_size=0)
+    agent = DQNAgent(
+        action_space=env.action_space, network=network,
+        obs_shape=ob.shape, nbr_obs=nbr_obs,
+        nbr_past_actions=nbr_past_actions, buffer_size=10,
+        use_actions=use_actions, epsilon=0.0, decay=0.0,
+        epsilon_min=0.0
+    )
 
     episode_count = 1
     reward = 0
@@ -60,6 +68,7 @@ if __name__ == '__main__':
         ob = env.reset()
         while True:
             action = agent.act(ob, reward)
+            print(action)
             ob, reward, done, _ = env.step(action)
             if done:
                 break

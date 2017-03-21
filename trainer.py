@@ -13,9 +13,10 @@ class DQNLearning:
     def __init__(self, env_id, weight_fname, use_actions=False, nbr_obs=4,
                  episode_count=10, buffer_size=1000000, nbr_past_actions=0,
                  update_freq=10000, batch_size=32, gamma=0.99,
-                 optimizer=Adam(lr=2.5e-4,), loss='mean_squared_error',
-                 epsilon=1.0, decay=1e-6, epsilon_min=0.1,
-                 action_repetition_rate=4):
+                 optimizer=Adam(lr=2.5e-4, clipnorm=1.),
+                 loss='mean_squared_error', epsilon=1.0, decay=1e-6,
+                 epsilon_min=0.1, action_repetition_rate=4,
+                 no_op_max=30, no_op_action=0):
         """Init
 
         :param env_id: id of the gym environment
@@ -40,6 +41,10 @@ class DQNLearning:
         :param epsilon_min: minimum epsilon value
         :param action_repetition_rate: rate at which action should be repeated
          for computational efficiency
+        :param no_op_max: int, maximum number of no_op action to perform at the
+         start of an episode
+        :param no_op_action: index of the action which results in not doing
+         anything
         """
 
         self.env = gym.make(env_id)
@@ -53,6 +58,8 @@ class DQNLearning:
         self.use_actions = use_actions
         self.weight_fname = weight_fname
         self.action_repetition_rate = action_repetition_rate
+        self.no_op_max = no_op_max
+        self.no_op_action = no_op_action
 
         ob = self.env.reset()
         input_shape = (ob.shape[0], ob.shape[1], nbr_obs * ob.shape[2])
@@ -100,7 +107,9 @@ class DQNLearning:
         while warm_up_counter < 50000:
             ob = self.env.reset()
             while True:
-                action = self.agent.act(ob, reward)
+                action = self.agent.act(ob, reward, random=True,
+                                        no_op_max=self.no_op_max,
+                                        no_op_action=self.no_op_action)
                 ob, reward, done, _ = self.env.step(action)
                 warm_up_counter += 1
                 if done:

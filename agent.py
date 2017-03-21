@@ -58,6 +58,14 @@ class DQNAgent(object):
         self.use_actions = use_actions
         self.nbr_action = self.action_space.n
 
+    def _evaluate_max_repeat_condition(self, no_op_max, no_op_action=0):
+        """Return True if all the previous no_op_max action are no op"""
+
+        index_min = min(len(self.history.past_actions) - no_op_max, 0)
+        considered_actions = np.array(self.history.past_actions[index_min:])
+
+        return np.all(considered_actions == no_op_action)
+
     def _format_action_input(self, action):
         """Format the action input to feed to the network
 
@@ -113,20 +121,33 @@ class DQNAgent(object):
 
         self.epsilon = max(self.epsilon - self.decay, self.epsilon_min)
 
-    def act(self, obs, reward):
+    def act(self, obs, reward, random=False, no_op_max=30, no_op_action=0):
         """Act on the observation
 
         :param obs: observation from the gym environment
         :param reward: current reward
+        :param random: boolean, if true, act as a random agent
+        :param no_op_max: int, maximum number of no_op action to perform at the
+         start of an episode
+        :param no_op_action: index of the action which results in not doing
+         anything
         :return: int, action to take in the environment
         """
 
-        if np.random.rand() <= self.epsilon:
+        if random:
+            return self.action_space.sample()
+
+        max_repeat_condition = self._evaluate_max_repeat_condition(
+            no_op_max, no_op_action
+        )
+
+        if np.random.rand() <= self.epsilon or max_repeat_condition:
             action = self.action_space.sample()
         else:
             inference_input = self.history.get_inference_input()
             inference_input = self._format_input(inference_input)
             q_value = self.network.model.predict(inference_input)[0]
+            print(q_value)
             action = np.argmax(q_value)
 
         self._update_policy()
