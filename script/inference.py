@@ -3,8 +3,8 @@ import logging
 import sys
 
 import gym
-from gym import wrappers
 
+from environment import ProcessedEnvironnement
 from agent import DQNAgent
 from network import Network
 from history import History
@@ -35,10 +35,9 @@ if __name__ == '__main__':
 
     logger = get_logger()
 
-    env = gym.make(args.env_id)
-
-    outdir = '/tmp/random-agent-results'
-    env = wrappers.Monitor(env, directory=outdir, force=True)
+    env = ProcessedEnvironnement(args.env_id,
+                                 outdir='/tmp/random-agent-results',
+                                 wrappers_cond=True)
     env.seed(0)
 
     weight_fname = '/Users/matthieule/temp/test.h5'
@@ -72,10 +71,6 @@ if __name__ == '__main__':
             ob, reward, done, _ = env.step(action)
             if done:
                 break
-
-    # for i in range(100):
-    #     test = agent.history.get_training_input(4)
-    #     print(test.shape)
 
     # Close the env and write monitor result info to disk
     env.close()

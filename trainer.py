@@ -1,8 +1,7 @@
 """Trainer"""
 
-import gym
-
 from agent import DQNAgent
+from environment import ProcessedEnvironnement
 from network import Network
 
 from keras.optimizers import Adam
@@ -47,7 +46,7 @@ class DQNLearning:
          anything
         """
 
-        self.env = gym.make(env_id)
+        self.env = ProcessedEnvironnement(env_id)
         self.env.seed(0)
         self.nbr_action = self.env.action_space.n
         self.batch_size = batch_size
