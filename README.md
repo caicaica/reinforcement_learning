@@ -1,12 +1,5 @@
-Network class which predict for each action, the future reward given the
-observation
+Implementation of [1]
 
-Agent class which takes a decision based on the observation and given the
-Network
+Object oriented implementation of the deep Q-network (DQN) for 2D inputs
 
-An history class which remembers the last N observations and the last N+P
-actions taken
-
-At training, randomly take a batch of size B of S consecutive observations and S+P
-consecutive actions. The observations are fed to the convnet, the actions are
-added at the fully connected layer
+[1] Mnih, Volodymyr, et al. "Human-level control through deep reinforcement learning." Nature 518.7540 (2015): 529-533.
