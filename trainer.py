@@ -2,7 +2,7 @@
 
 from agent import DQNAgent
 from environment import ProcessedEnvironnement
-from network import Network
+from convnet import ConvNet
 
 from keras.optimizers import Adam
 
@@ -63,7 +63,7 @@ class DQNLearning:
         ob = self.env.reset()
         input_shape = (ob.shape[0], ob.shape[1], nbr_obs * ob.shape[2])
 
-        network = Network(
+        network = ConvNet(
             input_shape=input_shape, nbr_action=self.nbr_action,
             use_actions=use_actions,
             nbr_previous_action=nbr_obs + nbr_past_actions
@@ -76,7 +76,7 @@ class DQNLearning:
             use_actions=use_actions, epsilon=epsilon, decay=decay,
             epsilon_min=epsilon_min
         )
-        self.network_target = Network(
+        self.network_target = ConvNet(
             input_shape=input_shape, nbr_action=self.nbr_action,
             use_actions=use_actions,
             nbr_previous_action=nbr_obs + nbr_past_actions

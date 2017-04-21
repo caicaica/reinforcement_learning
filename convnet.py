@@ -7,8 +7,8 @@ from keras.layers import (
 from keras.models import Model
 
 
-class Network:
-    """Network"""
+class ConvNet:
+    """ConvNet"""
 
     def __init__(self, input_shape, nbr_action, nbr_filters=8,
                  nbr_bottleneck=2, nbr_pooling=6, kernel_size=2,
@@ -110,7 +110,7 @@ class Network:
             for idx_bottleneck in range(self.nbr_bottleneck):
                 layer = self._bottleneck(layer,
                                          self.nbr_filters * 2 ** idx_pooling)
-            layer = self._pooling(layer)
+            layer = MaxPooling2D(pool_size=(2, 2))(layer)
 
         # Dense layer
         layer = Flatten()(layer)
@@ -159,17 +159,6 @@ class Network:
         output_layer = BatchNormalization()(output_layer)
         output_layer = Activation('relu')(output_layer)
         return output_layer
-    
-    @staticmethod
-    def _pooling(input_layer):
-        """Downsampling layer
-
-        :param input_layer: input layer
-        :return: output layer
-        """
-        
-        output_layer = MaxPooling2D(pool_size=(2, 2))(input_layer)
-        return output_layer
 
     def load_weights(self, weight_fname):
         """Load weights
@@ -179,7 +168,7 @@ class Network:
 
         self.model.load_weights(weight_fname)
 
-    def predict_qval(self, model_input):
+    def q_value(self, model_input):
         """Predict Q values
 
         :param model_input: input to the model

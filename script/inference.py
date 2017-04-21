@@ -6,7 +6,7 @@ import gym
 
 from environment import ProcessedEnvironnement
 from agent import DQNAgent
-from network import Network
+from convnet import ConvNet
 from history import History
 
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     nbr_past_actions = 2
     ob = env.reset()
     input_shape = (ob.shape[0], ob.shape[1], nbr_obs*ob.shape[2])
-    network = Network(input_shape=input_shape, nbr_action=env.action_space.n,
+    network = ConvNet(input_shape=input_shape, nbr_action=env.action_space.n,
                       use_actions=use_actions, weight_fname=weight_fname,
                       nbr_previous_action=nbr_obs + nbr_past_actions)
     history = History(obs_shape=ob.shape, nbr_obs=nbr_obs, nbr_past_actions=nbr_past_actions,

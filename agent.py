@@ -3,7 +3,7 @@
 import numpy as np
 
 from history import History
-from network import Network
+from convnet import ConvNet
 
 np.random.seed(0)
 
@@ -18,7 +18,7 @@ class DQNAgent(object):
 
         :param action_space: action_space attribute of an OpenAI gym
          environment
-        :param network: Network instance
+        :param network: ConvNet instance
         :param obs_shape: tuple of length 2 or 3 providing the input shape
         :param nbr_obs: int, number of observation to feed during a forward
          network pass (which are stacked in the channel dimension)
@@ -33,7 +33,7 @@ class DQNAgent(object):
         :param epsilon_min: minimum epsilon value
         """
 
-        assert isinstance(network, Network)
+        assert isinstance(network, ConvNet)
         assert isinstance(obs_shape, tuple)
         assert isinstance(nbr_obs, int)
         assert isinstance(nbr_past_actions, int)
@@ -112,7 +112,7 @@ class DQNAgent(object):
             input_action = self._format_action_input(action)
 
         model_input = [obs, input_action] if self.use_actions else obs
-        qval = self.network.predict_qval(model_input)[0]
+        qval = self.network.q_value(model_input)[0]
 
         return qval
 
