@@ -10,8 +10,8 @@ from keras.models import Model
 class ConvNet:
     """ConvNet"""
 
-    def __init__(self, input_shape, nbr_action, nbr_filters=8,
-                 nbr_bottleneck=2, nbr_pooling=6, kernel_size=2,
+    def __init__(self, input_shape, nbr_action, nbr_filters=16,
+            nbr_bottleneck=2, nbr_pooling=6, kernel_size=2,
                  projection_scale=6, nbr_fc_neurons=128, dropout=0.5,
                  use_actions=False, nbr_previous_action=10,
                  weight_fname=None):
