@@ -63,39 +63,46 @@ class DQNLearning:
         ob = self.env.reset()
         input_shape = (ob.shape[0], ob.shape[1], nbr_obs * ob.shape[2])
 
-        network = ConvNet(
+        network_agent = ConvNet(
             input_shape=input_shape, nbr_action=self.nbr_action,
             use_actions=use_actions,
             nbr_previous_action=nbr_obs + nbr_past_actions
         )
-        network.model.compile(optimizer=optimizer, loss=loss)
+        self.network = ConvNet(
+            input_shape=input_shape, nbr_action=self.nbr_action,
+            use_actions=use_actions,
+            nbr_previous_action=nbr_obs + nbr_past_actions
+        )
+        self.network.model.compile(optimizer=optimizer, loss=loss)
         self.agent = DQNAgent(
-            action_space=self.env.action_space, network=network,
+            action_space=self.env.action_space, network=network_agent,
             obs_shape=ob.shape, nbr_obs=nbr_obs,
             nbr_past_actions=nbr_past_actions, buffer_size=buffer_size,
             use_actions=use_actions, epsilon=epsilon, decay=decay,
             epsilon_min=epsilon_min
         )
-        self.network_target = ConvNet(
-            input_shape=input_shape, nbr_action=self.nbr_action,
-            use_actions=use_actions,
-            nbr_previous_action=nbr_obs + nbr_past_actions
-        )
+        self._save_network()
 
     def _learn(self):
         """Fit the model to a batch of data"""
 
         X, Y = self.agent.get_training_data(self.batch_size, self.gamma)
-
-        print(self.counter)
-        self.agent.network.model.fit(X, Y, nb_epoch=1,
-                                     batch_size=self.batch_size, verbose=1)
-
+        verbose = 0
+        if self.counter%50 == 0:
+            print(self.counter)
+            verbose = 1
+        self.network.model.fit(X, Y, nb_epoch=1,
+                               batch_size=self.batch_size,
+                               verbose=verbose)
         if self.counter % self.update_freq == 0:
-            self.agent.network.save_weights(self.weight_fname)
-            self.network_target.load_weights(self.weight_fname)
-
+            self._save_network()
         self.counter += 1
+
+    def _save_network(self):
+        """Save network and update target"""
+
+        self.network.save_weights(self.weight_fname)
+        self.agent.network.load_weights(self.weight_fname)
 
     def train(self):
         """Train the model"""
@@ -105,6 +112,7 @@ class DQNLearning:
         warm_up_counter = 0
         while warm_up_counter < 50000:
             ob = self.env.reset()
+            done = False
             while True:
                 action = self.agent.act(ob, reward, random=True,
                                         no_op_max=self.no_op_max,
@@ -117,6 +125,7 @@ class DQNLearning:
         for i in range(self.episode_count):
             action_repetition_counter = 0
             ob = self.env.reset()
+            done = False
             while True:
                 if action_repetition_counter % self.action_repetition_rate == 0:
                     action = self.agent.act(ob, reward)

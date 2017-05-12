@@ -113,7 +113,6 @@ class DQNAgent(object):
 
         model_input = [obs, input_action] if self.use_actions else obs
         qval = self.network.q_value(model_input)[0]
-
         return qval
 
     def _update_policy(self):
@@ -147,6 +146,7 @@ class DQNAgent(object):
                 inference_input = self.history.get_inference_input()
                 inference_input = self._format_input(inference_input)
                 q_value = self.network.model.predict(inference_input)[0]
+                print(q_value)
                 action = np.argmax(q_value)
 
         self._update_policy()

@@ -10,9 +10,9 @@ from keras.models import Model
 class ConvNet:
     """ConvNet"""
 
-    def __init__(self, input_shape, nbr_action, nbr_filters=16,
-            nbr_bottleneck=2, nbr_pooling=6, kernel_size=2,
-                 projection_scale=6, nbr_fc_neurons=128, dropout=0.5,
+    def __init__(self, input_shape, nbr_action, nbr_filters=32,
+            nbr_bottleneck=2, nbr_pooling=6, kernel_size=3,
+                 projection_scale=2, nbr_fc_neurons=512, dropout=0.0,
                  use_actions=False, nbr_previous_action=10,
                  weight_fname=None):
         """Init
@@ -58,7 +58,7 @@ class ConvNet:
         assert 0 <= dropout <= 1
         assert nbr_previous_action >= 0
         valid_pooling_cond = input_shape[0]/2**nbr_pooling
-        assert valid_pooling_cond > 1
+        assert valid_pooling_cond >= 1
 
         self.input_shape = input_shape
         self.nbr_action = nbr_action
@@ -128,9 +128,9 @@ class ConvNet:
         else:
             model_input = input_layer
 
-        layer = Dropout(self.dropout)(layer)
-        layer = Dense(self.nbr_fc_neurons)(layer)
-        layer = Activation('relu')(layer)
+        #layer = Dropout(self.dropout)(layer)
+        #layer = Dense(self.nbr_fc_neurons)(layer)
+        #layer = Activation('relu')(layer)
 
         layer = Dropout(self.dropout)(layer)
         layer = Dense(self.nbr_action)(layer)

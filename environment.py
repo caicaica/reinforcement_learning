@@ -17,7 +17,7 @@ class ProcessedEnvironnement:
     """Wrapper around a OpenAI environment to add some pre-processing"""
 
     def __init__(self, env_id, outdir=None, wrappers_cond=False,
-                 grayscale=True, new_shape=(128, 128)):
+                 grayscale=True, new_shape=(84, 84)):
         """Init
 
         :param env_id: id of the OpenAI environment

@@ -36,14 +36,14 @@ if __name__ == '__main__':
     logger = get_logger()
 
     env = ProcessedEnvironnement(args.env_id,
-                                 outdir='/tmp/random-agent-results',
+                                 outdir='/home/matthieu/temp/random-agent-results',
                                  wrappers_cond=True)
     env.seed(0)
 
     weight_fname = '/home/matthieu/temp/test.h5'
-    use_actions = True
+    use_actions = False
     nbr_obs = 4
-    nbr_past_actions = 10
+    nbr_past_actions = 0
     ob = env.reset()
     input_shape = (ob.shape[0], ob.shape[1], nbr_obs*ob.shape[2])
     network = ConvNet(input_shape=input_shape, nbr_action=env.action_space.n,
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     agent = DQNAgent(
         action_space=env.action_space, network=network,
         obs_shape=ob.shape, nbr_obs=nbr_obs,
-        nbr_past_actions=nbr_past_actions, buffer_size=10,
+        nbr_past_actions=nbr_past_actions, buffer_size=6,
         use_actions=use_actions, epsilon=0.0, decay=0.0,
         epsilon_min=0.0
     )
