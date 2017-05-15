@@ -114,9 +114,10 @@ class DQNLearning:
             ob = self.env.reset()
             done = False
             while True:
-                action = self.agent.act(ob, reward, random=True,
-                                        no_op_max=self.no_op_max,
-                                        no_op_action=self.no_op_action)
+                action = self.agent.act(
+                    ob, reward, done, random=True, no_op_max=self.no_op_max,
+                    no_op_action=self.no_op_action
+                )
                 ob, reward, done, _ = self.env.step(action)
                 warm_up_counter += 1
                 if done:
@@ -128,8 +129,15 @@ class DQNLearning:
             done = False
             while True:
                 if action_repetition_counter % self.action_repetition_rate == 0:
-                    action = self.agent.act(ob, reward)
+                    action_to_take = None
+                else:
+                    action_to_take = action
                     self._learn()
+                action = self.agent.act(
+                    ob, reward, done, no_op_max=self.no_op_max,
+                    no_op_action=self.no_op_action, 
+                    action_to_take = action_to_take
+                )
                 ob, reward, done, _ = self.env.step(action)
                 action_repetition_counter += 1
                 if done:

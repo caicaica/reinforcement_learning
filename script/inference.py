@@ -1,4 +1,4 @@
-import argparse
+import argparse 
 import logging
 import sys
 
@@ -50,12 +50,12 @@ if __name__ == '__main__':
                       use_actions=use_actions, weight_fname=weight_fname,
                       nbr_previous_action=nbr_obs + nbr_past_actions)
     history = History(obs_shape=ob.shape, nbr_obs=nbr_obs, nbr_past_actions=nbr_past_actions,
-                      use_actions=network.use_actions, buffer_size=0)
+                      use_actions=network.use_actions, buffer_size=10)
     agent = DQNAgent(
         action_space=env.action_space, network=network,
         obs_shape=ob.shape, nbr_obs=nbr_obs,
         nbr_past_actions=nbr_past_actions, buffer_size=6,
-        use_actions=use_actions, epsilon=0.0, decay=0.0,
+        use_actions=use_actions, epsilon=0.05, decay=0.0,
         epsilon_min=0.0
     )
 
@@ -65,10 +65,17 @@ if __name__ == '__main__':
 
     for i in range(episode_count):
         ob = env.reset()
+        done = False
+        counter = 0
         while True:
-            action = agent.act(ob, reward)
-            print(action)
+            print(counter)
+            action = agent.act(ob, reward, done)
             ob, reward, done, _ = env.step(action)
+            import matplotlib.pyplot as plt 
+            plt.imshow(ob[...,0], cmap='gray') 
+            plt.axis('off') 
+            plt.savefig('{}.png'.format(counter))
+            counter += 1
             if done:
                 break
 

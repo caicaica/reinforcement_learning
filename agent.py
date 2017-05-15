@@ -120,20 +120,25 @@ class DQNAgent(object):
 
         self.epsilon = max(self.epsilon - self.decay, self.epsilon_min)
 
-    def act(self, obs, reward, random=False, no_op_max=30, no_op_action=0):
+    def act(self, obs, reward, done, random=False, no_op_max=30,
+            no_op_action=0, action_to_take=None):
         """Act on the observation
 
         :param obs: observation from the gym environment
         :param reward: current reward
+        :param done: boolean, if true the episode ended with the previous
+         action
         :param random: boolean, if true, act as a random agent
         :param no_op_max: int, maximum number of no_op action to perform at the
          start of an episode
         :param no_op_action: index of the action which results in not doing
          anything
+        :param action_to_take: if not None, the agent will take this action
         :return: int, action to take in the environment
         """
-
-        if random:
+        if action_to_take is not None:
+            action = action_to_take
+        elif random:
             action = self.action_space.sample()
         else:
             max_repeat_condition = self._evaluate_max_repeat_condition(
@@ -146,11 +151,10 @@ class DQNAgent(object):
                 inference_input = self.history.get_inference_input()
                 inference_input = self._format_input(inference_input)
                 q_value = self.network.model.predict(inference_input)[0]
-                print(q_value)
                 action = np.argmax(q_value)
+            self._update_policy()
 
-        self._update_policy()
-        self.history.update_history(obs, action, float(reward))
+        self.history.update_history(obs, action, float(reward), done)
 
         return action
 
@@ -167,29 +171,30 @@ class DQNAgent(object):
         assert batch_size > 0
         assert 0 <= gamma <= 1
 
-        training_data_dict = self.history.get_training_data(batch_size)
+        training_data_list = self.history.get_training_data(batch_size)
 
         Y_list = []
         X_list_obs = []
         X_list_action = []
 
-        for sample_idx in range(batch_size):
-            obs = training_data_dict['obs'][sample_idx]
-            new_obs = training_data_dict['new_obs'][sample_idx]
-            reward = training_data_dict['reward'][sample_idx]
-            action = training_data_dict['action_taken'][sample_idx]
-            new_action = training_data_dict['new_action_taken'][sample_idx]
-
-            old_qval = self._predict(obs[None, ...], action)
-            new_qval = self._predict(new_obs[None, ...], new_action)
+        for training_data_dict in training_data_list:
+            old_qval = self._predict(
+                training_data_dict['obs'][None, ...],
+                training_data_dict['action_taken']
+            )
+            new_qval = self._predict(
+                training_data_dict['new_obs'][None, ...],
+                training_data_dict['new_action_taken']
+            )
             maxQ = np.max(new_qval)
             Y = np.zeros((1, self.nbr_action))
             Y[:] = old_qval[:]
-            update = reward + (gamma * maxQ)
-            Y[0][new_action[-1]] = update
+            done = training_data_dict['done']
+            update = training_data_dict['reward'] + (gamma * maxQ)*(1-done)
+            Y[0][training_data_dict['new_action_taken'][-1]] = update
             Y_list.append(Y)
-            X_list_obs.append(obs)
-            X_list_action.append(action)
+            X_list_obs.append(training_data_dict['obs'])
+            X_list_action.append(training_data_dict['action_taken'])
 
         Y = np.concatenate(Y_list)
 

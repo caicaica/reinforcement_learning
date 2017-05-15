@@ -1,9 +1,8 @@
 ## TO DO
 
-- Make sure the target and current network have the smae weight at
-  initialization
-- Handle the end of an episode properly: Q should just be the current reward if
-  the episode if ending
+- Handle the image flickering: take the max over a small temporal window
+- The fact that I take an action avery four action is not handled properly: it
+  should still go in the buffer
 
 ## Description
 
