@@ -1,5 +1,7 @@
 ## TO DO
 
+- The agent is acting on a delaied version of the history: the history should
+be updated right away
 - Handle the image flickering: take the max over a small temporal window
 - The fact that I take an action avery four action is not handled properly: it
   should still go in the buffer

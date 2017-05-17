@@ -35,33 +35,38 @@ class History:
 
         self.obs_shape = obs_shape
         self.nbr_observations = nbr_obs
-        self.total_nbr_observations = nbr_obs + buffer_size
         self.nbr_actions = nbr_obs + nbr_past_actions
-        self.total_nbr_actions = nbr_obs + nbr_past_actions + buffer_size
+        self.buffer_size = nbr_obs + nbr_past_actions + buffer_size
         self.use_actions = use_actions
 
         self.past_obs = []
+        self.past_obs_original = []
         self.past_actions = []
         self.past_rewards = []
         self.past_done = []
 
-    def _get_sample(self, index):
+    def _get_sample(self, index, nbr_observations, nbr_actions):
         """Get a sample of the stored data
 
+        It provides a list of nbr_observations where the last one is the index
+        one, and a list of nbr_actions where the last one is the index-1 one
+        (i.e. the action taken to get to observation index)
+
         :param index: index where to get the data from the history
+        :param nbr_observations: number of observations to stack
+        :param nbr_actions: number of actions to stack
         :return: tuple with a sample (as an array) of observation and action
         """
 
-        padding = max(self.nbr_observations - index, 0)
-        index_min = max(index-self.nbr_observations, 0)
+        padding = max(nbr_observations - index, 0)
+        index_min = max(index-nbr_observations, 0)
         sample_obs = np.concatenate(
             padding*[np.zeros(self.obs_shape)]+self.past_obs[index_min:index],
             axis=-1
         )
-
-        index_min = max(index - 1 - self.nbr_actions, 0)
+        index_min = max(index - 1 - nbr_actions, 0)
         padding = max(
-            self.nbr_actions - len(self.past_actions[index_min:index-1]), 0
+            nbr_actions - len(self.past_actions[index_min:index-1]), 0
         )
         sample_action = np.array(
             padding*[-1]+self.past_actions[index_min:index-1]
@@ -76,7 +81,7 @@ class History:
         """
 
         assert isinstance(action, int)
-        self._update_buffer(self.past_actions, self.total_nbr_actions, action)
+        self._update_buffer(self.past_actions, action)
 
     def _update_end_episode(self, done):
         """Update the done buffer
@@ -86,22 +91,18 @@ class History:
         """
 
         assert isinstance(done, bool)
-        self._update_buffer(self.past_done, self.total_nbr_observations, done)
+        self._update_buffer(self.past_done, done)
 
-    @staticmethod
-    def _update_buffer(current_buffer, buffer_max_size, element):
+    def _update_buffer(self, current_buffer, element):
         """General buffer update function
 
         :param current_buffer: list, buffer to update
-        :param buffer_max_size: int, buffer size
         :param element: element to add to the buffer
         """
         
         assert isinstance(current_buffer, list)
-        assert isinstance(buffer_max_size, int)
-        assert buffer_max_size > 0
 
-        if len(current_buffer) == buffer_max_size:
+        if len(current_buffer) == self.buffer_size:
             current_buffer.pop(0)
         current_buffer.append(element)
 
@@ -113,8 +114,9 @@ class History:
 
         assert isinstance(obs, np.ndarray)
         assert obs.shape == self.obs_shape
-        self._update_buffer(self.past_obs, self.total_nbr_observations, obs)
-        self.past_obs[-1] = np.max(np.array(self.past_obs[-3:]), axis=0)
+        self._update_buffer(self.past_obs_original, obs)
+        obs_processed = np.max(np.array(self.past_obs_original[-3:]), axis=0)
+        self._update_buffer(self.past_obs, obs_processed)
 
     def _update_rewards(self, reward):
         """Add reward to the history buffer
@@ -123,16 +125,24 @@ class History:
         """
 
         assert isinstance(reward, float)
-        self._update_buffer(
-            self.past_rewards, self.total_nbr_observations, reward
-        )
+        self._update_buffer(self.past_rewards, reward)
 
-    def get_inference_input(self):
+    def get_inference_input(self, obs):
         """Get the input necessary for inference"""
 
         n = len(self.past_obs)
-        inference_input_obs, inference_input_action = self._get_sample(n)
+        inference_input_obs, inference_input_action = self._get_sample(
+                n, self.nbr_observations-1, self.nbr_actions-1
+        )
+        inference_input_obs = np.concatenate(
+                [inference_input_obs, obs],
+                axis=-1
+        )
         inference_input_obs = inference_input_obs[None, ...]
+        inference_input_action = np.concatenate(
+                [inference_input_action, [self.past_actions[-1]]],
+                axis=-1
+        )
         if self.use_actions:
             return [inference_input_obs, inference_input_action]
         else:
@@ -151,14 +161,17 @@ class History:
         training_data_list = []
 
         for sample in range(batch_size):
-
             random_idx = np.random.randint(1, len(self.past_obs)-1)
-
-            obs, action_taken = self._get_sample(random_idx)
-            new_obs, new_action_taken = self._get_sample(random_idx+1)
+            obs, action_taken = self._get_sample(
+                    random_idx, self.nbr_observations, 
+                    self.nbr_actions
+            )
+            new_obs, new_action_taken = self._get_sample(
+                    random_idx+1, self.nbr_observations,
+                    self.nbr_actions
+            )
             reward = self.past_rewards[random_idx+1]
-            done = self.past_done[random_idx]
-
+            done = self.past_done[random_idx+1]
             training_data_dict = {
                 'obs': obs,
                 'action_taken': action_taken,
@@ -167,7 +180,6 @@ class History:
                 'reward': reward,
                 'done': done
             }
-
             training_data_list.append(training_data_dict)
 
         return training_data_list

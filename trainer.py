@@ -12,7 +12,7 @@ class DQNLearning:
     def __init__(self, env_id, weight_fname, use_actions=False, nbr_obs=4,
                  episode_count=10, buffer_size=1000000, nbr_past_actions=0,
                  update_freq=10000, batch_size=32, gamma=0.99,
-                 optimizer=Adam(lr=2.5e-4, clipnorm=1.),
+                 optimizer=Adam(lr=2.5e-4),
                  loss='mean_squared_error', epsilon=1.0, decay=1e-6,
                  epsilon_min=0.1, action_repetition_rate=4,
                  no_op_max=30, no_op_action=0):
@@ -108,11 +108,10 @@ class DQNLearning:
         """Train the model"""
 
         reward = 0
-
         warm_up_counter = 0
         while warm_up_counter < 50000:
             ob = self.env.reset()
-            done = False
+            done = True
             while True:
                 action = self.agent.act(
                     ob, reward, done, random=True, no_op_max=self.no_op_max,
@@ -122,17 +121,23 @@ class DQNLearning:
                 warm_up_counter += 1
                 if done:
                     break
-
+        import pickle
+        with open('/home/matthieu/Dev/openai/reinforcement_learning/history.pkl', 'wb') as outfile:
+            pickle.dump(
+                self.agent.history,
+                outfile,
+                protocol=pickle.HIGHEST_PROTOCOL
+            )
         for i in range(self.episode_count):
             action_repetition_counter = 0
             ob = self.env.reset()
-            done = False
+            done = True
             while True:
                 if action_repetition_counter % self.action_repetition_rate == 0:
                     action_to_take = None
+                    self._learn()
                 else:
                     action_to_take = action
-                    self._learn()
                 action = self.agent.act(
                     ob, reward, done, no_op_max=self.no_op_max,
                     no_op_action=self.no_op_action, 

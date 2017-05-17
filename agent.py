@@ -148,9 +148,10 @@ class DQNAgent(object):
             if np.random.rand() <= self.epsilon or max_repeat_condition:
                 action = self.action_space.sample()
             else:
-                inference_input = self.history.get_inference_input()
+                inference_input = self.history.get_inference_input(obs)
                 inference_input = self._format_input(inference_input)
                 q_value = self.network.model.predict(inference_input)[0]
+                print(q_value)
                 action = np.argmax(q_value)
             self._update_policy()
 

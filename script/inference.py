@@ -2,6 +2,8 @@ import argparse
 import logging
 import sys
 
+import numpy as np
+
 import gym
 
 from environment import ProcessedEnvironnement
@@ -68,13 +70,15 @@ if __name__ == '__main__':
         done = False
         counter = 0
         while True:
-            print(counter)
             action = agent.act(ob, reward, done)
             ob, reward, done, _ = env.step(action)
             import matplotlib.pyplot as plt 
-            plt.imshow(ob[...,0], cmap='gray') 
+            plt.imshow(agent.history.past_obs[-1][...,0], cmap='gray') 
             plt.axis('off') 
             plt.savefig('{}.png'.format(counter))
+            plt.imshow(agent.history.past_obs_original[-1][...,0], cmap='gray')
+            plt.axis('off')
+            plt.savefig('_{}.png'.format(counter))
             counter += 1
             if done:
                 break
