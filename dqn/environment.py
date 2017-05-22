@@ -135,5 +135,6 @@ class ProcessedEnvironnement:
         ob, reward, done, info = self.env.step(action)
 
         ob_preprocessed = self._preprocess(ob)
+        reward = np.clip(reward, -1, 1)
 
         return ob_preprocessed, reward, done, info

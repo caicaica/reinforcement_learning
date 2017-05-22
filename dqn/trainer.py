@@ -1,11 +1,12 @@
 """Trainer"""
 
-from agent import DQNAgent
-from environment import ProcessedEnvironnement
-from convnet import ConvNet
+from .agent import DQNAgent
+from .environment import ProcessedEnvironnement
+from .convnet import ConvNet
 
-from keras.optimizers import Adam
+from keras.optimizers import RMSprop, Adam
 
+# RMSprop(lr=2.5e-4,  rho=0.95, epsilon=0.01, decay=0.95)
 
 class DQNLearning:
 
@@ -86,7 +87,9 @@ class DQNLearning:
     def _learn(self):
         """Fit the model to a batch of data"""
 
-        X, Y = self.agent.get_training_data(self.batch_size, self.gamma)
+        X, Y = self.agent.get_training_data(
+                self.batch_size, self.gamma, self.network
+        )
         verbose = 0
         if self.counter%50 == 0:
             print(self.counter)

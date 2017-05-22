@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from history import History
-from convnet import ConvNet
+from .history import History
+from .convnet import ConvNet
 
 np.random.seed(0)
 
@@ -100,11 +100,12 @@ class DQNAgent(object):
         else:
             return network_input
 
-    def _predict(self, obs, action):
+    def _predict(self, obs, action, network):
         """Predict the Q value using the network
 
         :param obs: observation from the gym environment
         :param action: action history
+        :param network: network to use
         :return: predicted Q value
         """
 
@@ -112,7 +113,7 @@ class DQNAgent(object):
             input_action = self._format_action_input(action)
 
         model_input = [obs, input_action] if self.use_actions else obs
-        qval = self.network.q_value(model_input)[0]
+        qval = network.q_value(model_input)[0]
         return qval
 
     def _update_policy(self):
@@ -159,11 +160,12 @@ class DQNAgent(object):
 
         return action
 
-    def get_training_data(self, batch_size, gamma):
+    def get_training_data(self, batch_size, gamma, current_network):
         """Get the data used for a batch update
 
         :param batch_size: int, batch size
         :param gamma: float, gamma parameter of the reward decay
+        :param current network: current network being trained
         :return: tuple X, Y with the training data
         """
 
@@ -181,18 +183,21 @@ class DQNAgent(object):
         for training_data_dict in training_data_list:
             old_qval = self._predict(
                 training_data_dict['obs'][None, ...],
-                training_data_dict['action_taken']
+                training_data_dict['action_taken'],
+                current_network
             )
             new_qval = self._predict(
                 training_data_dict['new_obs'][None, ...],
-                training_data_dict['new_action_taken']
+                training_data_dict['new_action_taken'],
+                self.network
             )
-            maxQ = np.max(new_qval)
+            best_action = np.argmax(new_qval)
+            maxQ = new_qval[best_action]
             Y = np.zeros((1, self.nbr_action))
             Y[:] = old_qval[:]
             done = training_data_dict['done']
             update = training_data_dict['reward'] + (gamma * maxQ)*(1-done)
-            Y[0][training_data_dict['new_action_taken'][-1]] = update
+            Y[0][best_action] = update
             Y_list.append(Y)
             X_list_obs.append(training_data_dict['obs'])
             X_list_action.append(training_data_dict['action_taken'])

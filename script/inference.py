@@ -6,10 +6,10 @@ import numpy as np
 
 import gym
 
-from environment import ProcessedEnvironnement
-from agent import DQNAgent
-from convnet import ConvNet
-from history import History
+from dqn.environment import ProcessedEnvironnement
+from dqn.agent import DQNAgent
+from dqn.convnet import ConvNet
+from dqn.history import History
 
 
 def get_logger():
