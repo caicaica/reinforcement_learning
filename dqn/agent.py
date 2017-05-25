@@ -197,10 +197,10 @@ class DQNAgent(object):
             Y[:] = old_qval[:]
             done = training_data_dict['done']
             update = training_data_dict['reward'] + (gamma * maxQ)*(1-done)
-            Y[0][best_action] = update
+            Y[0][training_data_dict['action_taken'][-1]] = update
             Y_list.append(Y)
-            X_list_obs.append(training_data_dict['obs'])
-            X_list_action.append(training_data_dict['action_taken'])
+            X_list_obs.append(training_data_dict['obs'][..., :-1])
+            X_list_action.append(training_data_dict['action_taken'][..., :-1])
 
         Y = np.concatenate(Y_list)
 
