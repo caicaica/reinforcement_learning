@@ -182,13 +182,13 @@ class DQNAgent(object):
 
         for training_data_dict in training_data_list:
             old_qval = self._predict(
-                training_data_dict['obs'][None, ...],
-                training_data_dict['action_taken'],
+                training_data_dict['obs'][None, ..., :-1],
+                training_data_dict['action_taken'][..., :-1],
                 current_network
             )
             new_qval = self._predict(
-                training_data_dict['new_obs'][None, ...],
-                training_data_dict['new_action_taken'],
+                training_data_dict['obs'][None, ..., 1:],
+                training_data_dict['action_taken'][..., 1:],
                 self.network
             )
             best_action = np.argmax(new_qval)

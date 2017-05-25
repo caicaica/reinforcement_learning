@@ -169,10 +169,8 @@ class History:
             reward = self.past_rewards[random_idx]
             done = self.past_done[random_idx]
             training_data_dict = {
-                'obs': obs[..., :-1],
-                'new_obs': obs[..., 1:],
-                'action_taken': action_taken[..., -1],
-                'new_action_taken': action_taken[..., 1:],
+                'obs': obs,
+                'action_taken': action_taken,
                 'reward': reward,
                 'done': done
             }
