@@ -163,20 +163,16 @@ class History:
         for sample in range(batch_size):
             random_idx = np.random.randint(1, len(self.past_obs)-1)
             obs, action_taken = self._get_sample(
-                    random_idx, self.nbr_observations, 
-                    self.nbr_actions
+                    random_idx, self.nbr_observations+1,
+                    self.nbr_actions+1
             )
-            new_obs, new_action_taken = self._get_sample(
-                    random_idx+1, self.nbr_observations,
-                    self.nbr_actions
-            )
-            reward = self.past_rewards[random_idx+1]
-            done = self.past_done[random_idx+1]
+            reward = self.past_rewards[random_idx]
+            done = self.past_done[random_idx]
             training_data_dict = {
-                'obs': obs,
-                'action_taken': action_taken,
-                'new_action_taken': new_action_taken,
-                'new_obs': new_obs,
+                'obs': obs[..., :-1],
+                'new_obs': obs[..., 1:],
+                'action_taken': action_taken[..., -1],
+                'new_action_taken': action_taken[..., 1:],
                 'reward': reward,
                 'done': done
             }
