@@ -10,9 +10,9 @@ from keras.models import Model
 class ConvNet:
     """ConvNet"""
 
-    def __init__(self, input_shape, nbr_action, nbr_filters=32,
-            nbr_bottleneck=2, nbr_pooling=6, kernel_size=3,
-                 projection_scale=2, nbr_fc_neurons=512, dropout=0.0,
+    def __init__(self, input_shape, nbr_action, nbr_filters=64,
+            nbr_bottleneck=4, nbr_pooling=3, kernel_size=5,
+                 projection_scale=4, nbr_fc_neurons=128, dropout=0.0,
                  use_actions=False, nbr_previous_action=10,
                  weight_fname=None):
         """Init
@@ -110,7 +110,7 @@ class ConvNet:
             for idx_bottleneck in range(self.nbr_bottleneck):
                 layer = self._bottleneck(layer,
                                          self.nbr_filters * 2 ** idx_pooling)
-            layer = MaxPooling2D(pool_size=(2, 2))(layer)
+            layer = MaxPooling2D(pool_size=(4, 4))(layer)
 
         # Dense layer
         layer = Flatten()(layer)

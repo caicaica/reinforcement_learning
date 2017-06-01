@@ -115,7 +115,7 @@ class History:
         assert isinstance(obs, np.ndarray)
         assert obs.shape == self.obs_shape
         self._update_buffer(self.past_obs_original, obs)
-        obs_processed = np.max(np.array(self.past_obs_original[-2:]), axis=0)
+        obs_processed = np.max(np.array(self.past_obs_original[-4:]), axis=0)
         self._update_buffer(self.past_obs, obs_processed)
 
     def _update_rewards(self, reward):

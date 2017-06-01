@@ -11,12 +11,12 @@ from keras.optimizers import RMSprop, Adam
 class DQNLearning:
 
     def __init__(self, env_id, weight_fname, use_actions=False, nbr_obs=4,
-                 episode_count=10, buffer_size=1000000, nbr_past_actions=0,
+                 episode_count=10, buffer_size=50000, nbr_past_actions=0,
                  update_freq=10000, batch_size=32, gamma=0.99,
-                 optimizer=Adam(lr=2.5e-4),
+                 optimizer=Adam(lr=2.5e-4, clipnorm=1.),
                  loss='mean_squared_error', epsilon=1.0, decay=1e-6,
                  epsilon_min=0.1, action_repetition_rate=4,
-                 no_op_max=30, no_op_action=0):
+                 no_op_max=10, no_op_action=0):
         """Init
 
         :param env_id: id of the gym environment
@@ -124,13 +124,6 @@ class DQNLearning:
                 warm_up_counter += 1
                 if done:
                     break
-        import pickle
-        with open('/home/matthieu/Dev/openai/reinforcement_learning/history.pkl', 'wb') as outfile:
-            pickle.dump(
-                self.agent.history,
-                outfile,
-                protocol=pickle.HIGHEST_PROTOCOL
-            )
         for i in range(self.episode_count):
             action_repetition_counter = 0
             ob = self.env.reset()

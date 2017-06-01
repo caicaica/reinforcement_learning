@@ -34,7 +34,6 @@ if __name__ == '__main__':
     parser.add_argument('env_id', nargs='?', default='SpaceInvaders-v0',
                         help='Select the environment to run')
     args = parser.parse_args()
-
     logger = get_logger()
 
     env = ProcessedEnvironnement(args.env_id,
@@ -45,7 +44,7 @@ if __name__ == '__main__':
     weight_fname = '/home/matthieu/temp/test.h5'
     use_actions = False
     nbr_obs = 4
-    nbr_past_actions = 0
+    nbr_past_actions = 4
     ob = env.reset()
     input_shape = (ob.shape[0], ob.shape[1], nbr_obs*ob.shape[2])
     network = ConvNet(input_shape=input_shape, nbr_action=env.action_space.n,
@@ -73,12 +72,6 @@ if __name__ == '__main__':
             action = agent.act(ob, reward, done)
             ob, reward, done, _ = env.step(action)
             import matplotlib.pyplot as plt 
-            plt.imshow(agent.history.past_obs[-1][...,0], cmap='gray') 
-            plt.axis('off') 
-            plt.savefig('{}.png'.format(counter))
-            plt.imshow(agent.history.past_obs_original[-1][...,0], cmap='gray')
-            plt.axis('off')
-            plt.savefig('_{}.png'.format(counter))
             counter += 1
             if done:
                 break
