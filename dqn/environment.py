@@ -71,7 +71,7 @@ class ProcessedEnvironnement:
         if self.new_shape != ob.shape:
             ob_processed = self._reshape(ob_processed, self.new_shape)
 
-        ob_processed = self._gaussian_normalization(ob_processed)
+        #ob_processed = self._gaussian_normalization(ob_processed)
 
         return ob_processed
 
@@ -135,6 +135,10 @@ class ProcessedEnvironnement:
         ob, reward, done, info = self.env.step(action)
 
         ob_preprocessed = self._preprocess(ob)
+        if done:
+            reward = -1
+        if reward == 0:
+            reward = 0.1
         reward = np.clip(reward, -1, 1)
 
         return ob_preprocessed, reward, done, info

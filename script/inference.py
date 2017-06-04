@@ -63,15 +63,16 @@ if __name__ == '__main__':
     episode_count = 1
     reward = 0
     done = False
-
+    action_repetition_rate = 4
     for i in range(episode_count):
         ob = env.reset()
         done = False
         counter = 0
         while True:
-            action = agent.act(ob, reward, done)
+            if counter % action_repetition_rate == 0:
+                action = agent.act(ob, reward, done)
+                print(action)
             ob, reward, done, _ = env.step(action)
-            import matplotlib.pyplot as plt 
             counter += 1
             if done:
                 break

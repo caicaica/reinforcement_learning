@@ -1,5 +1,5 @@
 """Network"""
-
+from keras import initializations
 from keras.layers import (
     Conv2D, MaxPooling2D, Input, merge, BatchNormalization,
     Activation, Flatten, Dropout, Dense
@@ -7,11 +7,14 @@ from keras.layers import (
 from keras.models import Model
 
 
+my_init = lambda shape, dim_ordering=None, name=None: initializations.normal(shape, scale=0.01)
+
+
 class ConvNet:
     """ConvNet"""
 
     def __init__(self, input_shape, nbr_action, nbr_filters=64,
-            nbr_bottleneck=4, nbr_pooling=3, kernel_size=5,
+            nbr_bottleneck=4, nbr_pooling=3, kernel_size=3,
                  projection_scale=4, nbr_fc_neurons=128, dropout=0.0,
                  use_actions=False, nbr_previous_action=10,
                  weight_fname=None):
@@ -88,10 +91,24 @@ class ConvNet:
         projected_nbr_filters = nbr_filters // self.projection_scale
         assert projected_nbr_filters > 0
 
-        output_layer = self._convolution(input_layer, 1, projected_nbr_filters)
-        output_layer = self._convolution(output_layer, self.kernel_size,
-                                         projected_nbr_filters)
-        output_layer = self._convolution(output_layer, 1, nbr_filters)
+        output_layer = BatchNormalization()(input_layer)
+        output_layer = Conv2D(projected_nbr_filters, 1, 1, 
+                              border_mode='same',
+                              init=my_init
+                              )(output_layer)
+        output_layer = BatchNormalization()(output_layer)
+        output_layer = Activation('relu')(output_layer)
+        output_layer = Conv2D(projected_nbr_filters, self.kernel_size,
+                              self.kernel_size, border_mode='same',
+                              init=my_init
+                              )(output_layer)
+        output_layer = BatchNormalization()(output_layer)
+	output_layer = Activation('relu')(output_layer)
+	output_layer = Conv2D(nbr_filters, 1, 1,
+			      border_mode='same',
+                              init=my_init
+                              )(output_layer)
+	output_layer = BatchNormalization()(output_layer)
 
         current_nbr_filters = int(input_layer.get_shape()[-1])
         if current_nbr_filters == nbr_filters:
@@ -102,39 +119,55 @@ class ConvNet:
     def _build_model(self):
         """Build the model"""
 
-        input_layer = Input(shape=self.input_shape)
-
-        layer = self._convolution(input_layer, self.kernel_size,
-                                  self.nbr_filters)
-        for idx_pooling in range(self.nbr_pooling):
-            for idx_bottleneck in range(self.nbr_bottleneck):
-                layer = self._bottleneck(layer,
-                                         self.nbr_filters * 2 ** idx_pooling)
-            layer = MaxPooling2D(pool_size=(4, 4))(layer)
-
-        # Dense layer
-        layer = Flatten()(layer)
-        layer = Dropout(self.dropout)(layer)
-        layer = Dense(self.nbr_fc_neurons)(layer)
+        model_input = Input(shape=self.input_shape)
+	layer = model_input
+        layer = Conv2D(
+            32, 8, 8, subsample = (4, 4), 
+            init=my_init)(layer)
         layer = Activation('relu')(layer)
+        layer = Conv2D(
+            64, 4, 4, subsample = (2, 2),
+            init=my_init)(layer)
+	layer = Activation('relu')(layer)
+        layer = Conv2D(
+            64, 3, 3, subsample = (1, 1),
+            init=my_init)(layer)
+        layer = Activation('relu')(layer)
+	layer = Flatten()(layer)
+	layer = Dense(512, init=my_init)(layer)
+	layer = Activation('relu')(layer)
+	output_layer = Dense(self.nbr_action, init=my_init)(layer)
+
+#        layer = input_layer
+#        for idx_pooling in range(self.nbr_pooling):
+#            for idx_bottleneck in range(self.nbr_bottleneck):
+#                layer = self._bottleneck(layer,
+#                                         self.nbr_filters * 2 ** idx_pooling)
+#            layer = MaxPooling2D(pool_size=(4, 4))(layer)
+#
+#        # Dense layer
+#        layer = Flatten()(layer)
+#        layer = Dropout(self.dropout)(layer)
+#        layer = Dense(self.nbr_fc_neurons)(layer)
+#        layer = Activation('relu')(layer)
 
         # Add the action history if specified
-        if self.use_actions:
-            action_input = Input(
-                shape=(self.nbr_previous_action * self.nbr_action,)
-            )
-            layer = merge([layer, action_input], mode='concat')
-            model_input = [input_layer, action_input]
-        else:
-            model_input = input_layer
+#        if self.use_actions:
+#            action_input = Input(
+#                shape=(self.nbr_previous_action * self.nbr_action,)
+#            )
+#            layer = merge([layer, action_input], mode='concat')
+#            model_input = [input_layer, action_input]
+#        else:
+#            model_input = input_layer
 
-        #layer = Dropout(self.dropout)(layer)
-        #layer = Dense(self.nbr_fc_neurons)(layer)
-        #layer = Activation('relu')(layer)
+#        #layer = Dropout(self.dropout)(layer)
+#        #layer = Dense(self.nbr_fc_neurons)(layer)
+#        #layer = Activation('relu')(layer)
 
-        layer = Dropout(self.dropout)(layer)
-        layer = Dense(self.nbr_action)(layer)
-        output_layer = Activation('linear')(layer)
+#        layer = Dropout(self.dropout)(layer)
+#        layer = Dense(self.nbr_action)(layer)
+#        output_layer = Activation('linear')(layer)
 
         model = Model(input=model_input, output=output_layer)
 
@@ -142,23 +175,23 @@ class ConvNet:
 
         return model
 
-    @staticmethod
-    def _convolution(input_layer, kernel_size, nbr_filters):
-        """Convolution with batchnormalization and non linearity
-
-        :param input_layer: input layer
-        :param kernel_size: size of the kernel
-        :param nbr_filters: number of filters
-        :return: output layer
-        """
-        
-        assert kernel_size > 0
-        assert nbr_filters > 0
-        output_layer = Conv2D(nbr_filters, kernel_size, kernel_size,
-                              border_mode='same')(input_layer)
-        output_layer = BatchNormalization()(output_layer)
-        output_layer = Activation('relu')(output_layer)
-        return output_layer
+#    @staticmethod
+#    def _convolution(input_layer, kernel_size, nbr_filters):
+#       """Convolution with batchnormalization and non linearity
+#
+#        :param input_layer: input layer
+#        :param kernel_size: size of the kernel
+#        :param nbr_filters: number of filters
+#        :return: output layer
+#        """
+#        
+#        assert kernel_size > 0
+#        assert nbr_filters > 0
+#        output_layer = Conv2D(nbr_filters, kernel_size, kernel_size,
+#                              border_mode='same')(input_layer)
+#        output_layer = BatchNormalization()(output_layer)
+#        output_layer = Activation('relu')(output_layer)
+#        return output_layer
 
     def load_weights(self, weight_fname):
         """Load weights
