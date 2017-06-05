@@ -9,7 +9,6 @@ import gym
 from dqn.environment import ProcessedEnvironnement
 from dqn.agent import DQNAgent
 from dqn.convnet import ConvNet
-from dqn.history import History
 
 
 def get_logger():
@@ -46,15 +45,13 @@ if __name__ == '__main__':
     nbr_obs = 4
     nbr_past_actions = 4
     ob = env.reset()
-    input_shape = (ob.shape[0], ob.shape[1], nbr_obs*ob.shape[2])
+    input_shape = (84, 84, 4)
     network = ConvNet(input_shape=input_shape, nbr_action=env.action_space.n,
                       use_actions=use_actions, weight_fname=weight_fname,
                       nbr_previous_action=nbr_obs + nbr_past_actions)
-    history = History(obs_shape=ob.shape, nbr_obs=nbr_obs, nbr_past_actions=nbr_past_actions,
-                      use_actions=network.use_actions, buffer_size=10)
     agent = DQNAgent(
         action_space=env.action_space, network=network,
-        obs_shape=ob.shape, nbr_obs=nbr_obs,
+        obs_shape=(84, 84, 1), nbr_obs=nbr_obs,
         nbr_past_actions=nbr_past_actions, buffer_size=6,
         use_actions=use_actions, epsilon=0.05, decay=0.0,
         epsilon_min=0.0

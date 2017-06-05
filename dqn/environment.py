@@ -17,7 +17,8 @@ class ProcessedEnvironnement:
     """Wrapper around a OpenAI environment to add some pre-processing"""
 
     def __init__(self, env_id, outdir=None, wrappers_cond=False,
-                 grayscale=True, new_shape=(84, 84)):
+                 grayscale=False, resize=False, new_shape=(84, 84),
+                 gaussian=False):
         """Init
 
         :param env_id: id of the OpenAI environment
@@ -25,17 +26,23 @@ class ProcessedEnvironnement:
         :param wrappers_cond: boolean, whether or not to call wrappers.Monitor
         :param grayscale: boolean, whether or not to turn the input into
          a grayscale image
+        :param resize: boolean, if True resize the input to a new shape
         :param new_shape: tuple, new shape of the resized input
+        :param gaussian: boolean, if True apply gaussian normalization
         """
 
         self.env = gym.make(env_id)
         if wrappers_cond:
             self.env = wrappers.Monitor(self.env, directory=outdir, force=True)
-
+        if not grayscale and resize:
+            raise ValueError(
+                'Processed environment: resize is only available for grayscale images'
+            )
         self.action_space = self.env.action_space
-
         self.grayscale = grayscale
         self.new_shape = new_shape
+        self.gaussian = gaussian
+        self.resize = resize
 
     @staticmethod
     def _gaussian_normalization(image):
@@ -68,10 +75,11 @@ class ProcessedEnvironnement:
                 raise NonRGBImage(
                     'Unexpected image shape: {}'.format(ob.shape)
                 )
-        if self.new_shape != ob.shape:
+        if self.resize:
             ob_processed = self._reshape(ob_processed, self.new_shape)
-
-        #ob_processed = self._gaussian_normalization(ob_processed)
+        
+        if self.gaussian:
+            ob_processed = self._gaussian_normalization(ob_processed)
 
         return ob_processed
 

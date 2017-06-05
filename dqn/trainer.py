@@ -70,7 +70,7 @@ class DQNLearning:
         self.buffer_size = buffer_size
 
         ob = self.env.reset()
-        input_shape = (ob.shape[0], ob.shape[1], nbr_obs * ob.shape[2])
+        input_shape = (84, 84, 4)
 
         network_agent = ConvNet(
             input_shape=input_shape, nbr_action=self.nbr_action,
@@ -85,7 +85,7 @@ class DQNLearning:
         self.network.model.compile(optimizer=optimizer, loss=loss)
         self.agent = DQNAgent(
             action_space=self.env.action_space, network=network_agent,
-            obs_shape=ob.shape, nbr_obs=nbr_obs,
+            obs_shape=(84, 84, 1), nbr_obs=nbr_obs,
             nbr_past_actions=nbr_past_actions, buffer_size=buffer_size,
             use_actions=use_actions, epsilon=epsilon, decay=decay,
             epsilon_min=epsilon_min

@@ -1,6 +1,7 @@
 """History class remembering the past observations and actions"""
 
 import numpy as np
+from scipy import ndimage
 
 
 class History:
@@ -14,6 +15,7 @@ class History:
         """Init
 
         :param obs_shape: tuple of length 2 or 3 providing the input shape
+         once it is processed
         :param nbr_obs: int, number of observation to feed during a forward
          network pass (which are stacked in the channel dimension)
         :param nbr_past_actions: int, number of past action (past the last
@@ -106,6 +108,21 @@ class History:
             current_buffer.pop(0)
         current_buffer.append(element)
 
+    def _preprocess(self, obs):
+        
+        if len(self.past_obs_original) > 1:
+            obs_processed = np.max(np.array([self.past_obs_original[-1], obs]), axis=0)
+        else:
+            obs_processed = obs.copy()
+        obs_processed = np.dot(obs_processed, [0.299, 0.587, 0.114])
+        obs_processed = obs_processed[..., None]
+        input_shape = np.array(obs_processed.shape).astype(np.float)
+        output_shape = np.array(self.obs_shape).astype(np.float)
+        zoom_factors = output_shape / input_shape
+        obs_processed = ndimage.zoom(obs_processed, zoom_factors, order=1)
+
+        return obs_processed
+
     def _update_observations(self, obs):
         """Add observation to the history buffer
         
@@ -113,9 +130,10 @@ class History:
         """
 
         assert isinstance(obs, np.ndarray)
-        assert obs.shape == self.obs_shape
+
         self._update_buffer(self.past_obs_original, obs)
-        obs_processed = np.max(np.array(self.past_obs_original[-4:]), axis=0)
+        
+        obs_processed = self._preprocess(obs)
         self._update_buffer(self.past_obs, obs_processed)
 
     def _update_rewards(self, reward):
@@ -135,7 +153,7 @@ class History:
                 n, self.nbr_observations-1, self.nbr_actions-1
         )
         inference_input_obs = np.concatenate(
-                [inference_input_obs, obs],
+                [inference_input_obs, self._preprocess(obs)],
                 axis=-1
         )
         inference_input_obs = inference_input_obs[None, ...]
