@@ -184,6 +184,7 @@ class History:
                     random_idx, self.nbr_observations+1,
                     self.nbr_actions+1
             )
+            obs += np.random.randn(*obs.shape)*np.std(obs)/10
             reward = self.past_rewards[random_idx]
             done = self.past_done[random_idx]
             training_data_dict = {

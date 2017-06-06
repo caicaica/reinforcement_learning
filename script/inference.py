@@ -41,9 +41,9 @@ if __name__ == '__main__':
     env.seed(0)
 
     weight_fname = '/home/matthieu/temp/test.h5'
-    use_actions = False
+    use_actions = True
     nbr_obs = 4
-    nbr_past_actions = 4
+    nbr_past_actions = 0
     ob = env.reset()
     input_shape = (84, 84, 4)
     network = ConvNet(input_shape=input_shape, nbr_action=env.action_space.n,
