@@ -15,7 +15,7 @@ def clipped_l2_loss(y_true, y_pred):
 
 class DQNLearning:
 
-    def __init__(self, env_id, weight_fname, use_actions=False, nbr_obs=4,
+    def __init__(self, env_id, weight_fname, use_actions=False, new_size=84, nbr_obs=4,
                  episode_count=1000000, buffer_size=50000, nbr_past_actions=0,
                  update_freq=10000, batch_size=32, gamma=0.99,
                  optimizer=Adam(lr=2.5e-4, clipnorm=1.),
@@ -28,6 +28,7 @@ class DQNLearning:
         :param weight_fname: filename of the weights
         :param use_actions: boolean, whether or not to use the action history
          as input to the network
+        :param new_size: int, new size of the input
         :param nbr_obs: int, number of observation to feed during a forward
          network pass (which are stacked in the channel dimension)
         :param episode_count: number of episode to go through during training
@@ -68,7 +69,7 @@ class DQNLearning:
         self.buffer_size = buffer_size
 
         ob = self.env.reset()
-        input_shape = (ob.shape[0], ob.shape[1], nbr_obs)
+        input_shape = (new_size, new_size, nbr_obs)
 
         network_agent = ConvNet(
             input_shape=input_shape, nbr_action=self.nbr_action,
@@ -83,7 +84,7 @@ class DQNLearning:
         self.network.model.compile(optimizer=optimizer, loss=loss)
         self.agent = DQNAgent(
             action_space=self.env.action_space, network=network_agent,
-            obs_shape=(ob.shape[0], ob.shape[1], 1), nbr_obs=nbr_obs,
+            obs_shape=(new_size, new_size, 1), nbr_obs=nbr_obs,
             nbr_past_actions=nbr_past_actions, buffer_size=buffer_size,
             use_actions=use_actions, epsilon=epsilon, decay=decay,
             epsilon_min=epsilon_min
