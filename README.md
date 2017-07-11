@@ -12,13 +12,8 @@ Clone this repository
 mkdir openai
 cd openai
 git clone https://github.com/matthieule/reinforcement_learning.git
-```
-
-Install the conda environment
-
-```bash
 cd reinforcement_learning
-conda create -n openai --file exported_packages.txt
+conda env create -f environment.yml
 ```
 
 Activate the environment
@@ -27,11 +22,10 @@ Activate the environment
 source activate openai
 ```
 
+Potential things to do:
 ```bash
-cd ..
-git clone https://github.com/openai/gym.git
-cd gym
-pip install -e .
+pip install gym'[all]'
+conda install -c conda-forge tensorflow
 ```
 
 ## Example Usage
