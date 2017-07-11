@@ -1,5 +1,4 @@
 """History class remembering the past observations and actions"""
-
 import numpy as np
 from scipy import ndimage
 

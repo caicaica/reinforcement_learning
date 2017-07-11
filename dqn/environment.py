@@ -1,7 +1,5 @@
 """Environment with some preprocessing"""
-
 import numpy as np
-from scipy import ndimage
 
 import gym
 from gym import wrappers

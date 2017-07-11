@@ -1,9 +1,8 @@
 """Agent"""
-
 import numpy as np
 
 from .history import History
-from .convnet import ConvNet
+from .cnn import ConvNet
 
 np.random.seed(0)
 

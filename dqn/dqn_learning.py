@@ -3,7 +3,7 @@ import keras.backend as K
 
 from .agent import DQNAgent
 from .environment import ProcessedEnvironnement
-from .convnet import ConvNet
+from .cnn import ConvNet
 
 from keras.optimizers import Adam
 
@@ -68,12 +68,12 @@ class DQNLearning:
         self.no_op_action = no_op_action
         self.buffer_size = buffer_size
 
-        ob = self.env.reset()
+        _ = self.env.reset()
         input_shape = (new_size, new_size, nbr_obs)
 
         network_agent = ConvNet(
             input_shape=input_shape, nbr_action=self.nbr_action,
-            use_actions=use_actions,
+            use_actions=use_actions, print_model=False,
             nbr_previous_action=nbr_obs + nbr_past_actions
         )
         self.network = ConvNet(

@@ -17,7 +17,7 @@ class ConvNet:
     """ConvNet"""
 
     def __init__(self, input_shape, nbr_action, use_actions=False,
-                 nbr_previous_action=0, weight_fname=None):
+                 nbr_previous_action=0, weight_fname=None, print_model=True):
         """Init
 
         :param input_shape: tuple, input shape of the network
@@ -27,12 +27,15 @@ class ConvNet:
         :param nbr_previous_action: nbr of previous action to feed to the
          network
         :param weight_fname: filename to potentially initialize the weights
+        :param print_model: boolean, whether or not to print the model
+         summary
         """
         
         assert isinstance(input_shape, tuple)
         assert isinstance(nbr_action, int)
         assert isinstance(use_actions, bool)
         assert isinstance(nbr_previous_action, int)
+        assert isinstance(print_model, bool)
         assert weight_fname is None or isinstance(weight_fname, str)
         assert len(input_shape) > 0
         assert nbr_action > 0
@@ -43,6 +46,7 @@ class ConvNet:
         self.use_actions = use_actions
         self.nbr_previous_action = nbr_previous_action
         self.weight_fname = weight_fname
+        self.print_model = print_model
 
         self.model = self._build_model()
         if self.weight_fname:
@@ -74,7 +78,8 @@ class ConvNet:
 
         output_layer = Dense(self.nbr_action, init=my_init)(layer)
         model = Model(input=model_input, output=output_layer)
-        model.summary(line_length=115)
+        if self.print_model:
+            model.summary(line_length=115)
 
         return model
 

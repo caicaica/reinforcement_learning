@@ -4,19 +4,17 @@ This is a work in progress: the code seems to run somewhat smoothly,
 but I have not taken the time to get 1 week worth of GPU to train it
 entirely :crying_cat_face:
 
+## Code Organization
+
 ## Description
 
 Implementation of [1]
 
-## Install
-
-Install [OpenAI gym](https://github.com/openai/gym)
+## Installation
 
 Clone this repository
 
 ```bash
-mkdir openai
-cd openai
 git clone https://github.com/matthieule/reinforcement_learning.git
 cd reinforcement_learning
 conda env create -f environment.yml
@@ -28,7 +26,7 @@ Activate the environment
 source activate openai
 ```
 
-Potential things to do:
+You might need to install the following:
 ```bash
 pip install gym'[all]'
 conda install -c conda-forge tensorflow
