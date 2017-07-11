@@ -1,3 +1,9 @@
+## WIP
+
+This is a work in progress: the code seems to run somewhat smoothly, 
+but I have not taken the time to get 1 week worth of GPU to train it
+entirely :crying_cat_face:
+
 ## Description
 
 Implementation of [1]
