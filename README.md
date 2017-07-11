@@ -6,6 +6,10 @@ entirely :crying_cat_face:
 
 ## Code Organization
 
+### Classes
+
+### Organization of action / reward
+
 ## Description
 
 Implementation of [1]
@@ -24,6 +28,11 @@ Activate the environment
 
 ```bash
 source activate openai
+```
+
+Export the path to the repository
+```bash
+export PYTHONPATH={path_to_reinforcement_learning}:$PYTHONPATH
 ```
 
 You might need to install the following:
