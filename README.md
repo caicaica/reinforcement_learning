@@ -1,33 +1,16 @@
-## TO DO
-
-- The agent is acting on a delaied version of the history: the history should
-be updated right away
-- Handle the image flickering: take the max over a small temporal window
-- The fact that I take an action avery four action is not handled properly: it
-  should still go in the buffer
-
 ## Description
 
 Implementation of [1]
-
-Object oriented implementation of the deep Q-network (DQN) for 2D inputs
 
 ## Install
 
 Install [OpenAI gym](https://github.com/openai/gym)
 
-```bash
-mkdir openai
-cd openai
-git clone https://github.com/openai/gym.git
-cd gym
-pip install -e .
-```
-
 Clone this repository
 
 ```bash
-cd ..
+mkdir openai
+cd openai
 git clone https://github.com/matthieule/reinforcement_learning.git
 ```
 
@@ -42,6 +25,13 @@ Activate the environment
 
 ```bash
 source activate openai
+```
+
+```bash
+cd ..
+git clone https://github.com/openai/gym.git
+cd gym
+pip install -e .
 ```
 
 ## Example Usage

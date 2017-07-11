@@ -1,8 +1,7 @@
-import argparse 
+"""Inference"""
+import argparse
 import logging
 import sys
-
-import numpy as np
 
 import gym
 
@@ -35,9 +34,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger = get_logger()
 
-    env = ProcessedEnvironnement(args.env_id,
-                                 outdir='/home/matthieu/temp/random-agent-results',
-                                 wrappers_cond=True)
+    env = ProcessedEnvironnement(
+        args.env_id, outdir='/home/matthieu/temp/random-agent-results',
+        wrappers_cond=True
+    )
     env.seed(0)
 
     weight_fname = '/home/matthieu/temp/test.h5'
@@ -76,5 +76,3 @@ if __name__ == '__main__':
 
     # Close the env and write monitor result info to disk
     env.close()
-    # Upload to the scoreboard
-    #gym.upload(outdir)

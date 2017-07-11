@@ -5,9 +5,7 @@ from .agent import DQNAgent
 from .environment import ProcessedEnvironnement
 from .convnet import ConvNet
 
-from keras.optimizers import RMSprop, Adam
-
-# RMSprop(lr=2.5e-4,  rho=0.95, epsilon=0.01, decay=0.95)
+from keras.optimizers import Adam
 
 
 def clipped_l2_loss(y_true, y_pred):
@@ -18,7 +16,7 @@ def clipped_l2_loss(y_true, y_pred):
 class DQNLearning:
 
     def __init__(self, env_id, weight_fname, use_actions=False, nbr_obs=4,
-                 episode_count=10, buffer_size=50000, nbr_past_actions=0,
+                 episode_count=1000000, buffer_size=50000, nbr_past_actions=0,
                  update_freq=10000, batch_size=32, gamma=0.99,
                  optimizer=Adam(lr=2.5e-4, clipnorm=1.),
                  loss=clipped_l2_loss, epsilon=1.0, decay=1e-6,
@@ -70,7 +68,7 @@ class DQNLearning:
         self.buffer_size = buffer_size
 
         ob = self.env.reset()
-        input_shape = (84, 84, 4)
+        input_shape = (ob.shape[0], ob.shape[1], nbr_obs)
 
         network_agent = ConvNet(
             input_shape=input_shape, nbr_action=self.nbr_action,
@@ -85,7 +83,7 @@ class DQNLearning:
         self.network.model.compile(optimizer=optimizer, loss=loss)
         self.agent = DQNAgent(
             action_space=self.env.action_space, network=network_agent,
-            obs_shape=(84, 84, 1), nbr_obs=nbr_obs,
+            obs_shape=(ob.shape[0], ob.shape[1], 1), nbr_obs=nbr_obs,
             nbr_past_actions=nbr_past_actions, buffer_size=buffer_size,
             use_actions=use_actions, epsilon=epsilon, decay=decay,
             epsilon_min=epsilon_min
@@ -95,16 +93,17 @@ class DQNLearning:
     def _learn(self):
         """Fit the model to a batch of data"""
 
-        X, Y = self.agent.get_training_data(
+        features, labels = self.agent.get_training_data(
                 self.batch_size, self.gamma, self.network
         )
         verbose = 0
-        if self.counter%50 == 0:
+        if self.counter % 50 == 0:
             print(self.counter)
             verbose = 1
-        self.network.model.fit(X, Y, nb_epoch=1,
-                               batch_size=self.batch_size,
-                               verbose=verbose)
+        self.network.model.fit(
+            features, labels, nb_epoch=1, batch_size=self.batch_size,
+            verbose=verbose
+        )
         if self.counter % self.update_freq == 0:
             self._save_network()
         self.counter += 1
@@ -118,34 +117,36 @@ class DQNLearning:
     def train(self):
         """Train the model"""
 
+        action = 0
         reward = 0
         warm_up_counter = 0
         while warm_up_counter < self.buffer_size:
-            action_repetition_counter = 0
+            action_rep_counter = 0
             ob = self.env.reset()
             done = True
             while True:
-                if action_repetition_counter % self.action_repetition_rate == 0:
+                if action_rep_counter % self.action_repetition_rate == 0:
                     action = self.agent.act(
                         ob, reward, done, random=True, no_op_max=self.no_op_max,
                         no_op_action=self.no_op_action
                     )
                     warm_up_counter += 1
                 ob, reward, done, _ = self.env.step(action)
+                action_rep_counter += 1
                 if done:
                     break
         for i in range(self.episode_count):
-            action_repetition_counter = 0
+            action_rep_counter = 0
             ob = self.env.reset()
             done = True
             while True:
-                if action_repetition_counter % self.action_repetition_rate == 0:
+                if action_rep_counter % self.action_repetition_rate == 0:
                     action = self.agent.act(
                         ob, reward, done, no_op_max=self.no_op_max,
                         no_op_action=self.no_op_action
                     )
                     self._learn()
                 ob, reward, done, _ = self.env.step(action)
-                action_repetition_counter += 1
+                action_rep_counter += 1
                 if done:
                     break

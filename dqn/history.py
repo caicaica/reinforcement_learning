@@ -109,13 +109,19 @@ class History:
         current_buffer.append(element)
 
     def _preprocess(self, obs):
-        
+
+        # Take the max over the color channel of the last two observations to
+        # avoid flickering
         if len(self.past_obs_original) > 1:
-            obs_processed = np.max(np.array([self.past_obs_original[-1], obs]), axis=0)
+            obs_processed = np.max(
+                np.array([self.past_obs_original[-1], obs]), axis=0
+            )
         else:
             obs_processed = obs.copy()
+        # Turn grayscale
         obs_processed = np.dot(obs_processed, [0.299, 0.587, 0.114])
         obs_processed = obs_processed[..., None]
+        # Resize
         input_shape = np.array(obs_processed.shape).astype(np.float)
         output_shape = np.array(self.obs_shape).astype(np.float)
         zoom_factors = output_shape / input_shape

@@ -112,7 +112,7 @@ class DQNAgent(object):
         if self.use_actions:
             input_action = self._format_action_input(action)
 
-        model_input = [obs, input_action] if self.use_actions else obs
+        model_input = obs if not self.use_actions else [obs, input_action]
         qval = network.q_value(model_input)[0]
         return qval
 
@@ -152,7 +152,6 @@ class DQNAgent(object):
                 inference_input = self.history.get_inference_input(obs)
                 inference_input = self._format_input(inference_input)
                 q_value = self.network.model.predict(inference_input)[0]
-                print(q_value)
                 action = np.argmax(q_value)
             self._update_policy()
 
@@ -176,9 +175,9 @@ class DQNAgent(object):
 
         training_data_list = self.history.get_training_data(batch_size)
 
-        Y_list = []
-        X_list_obs = []
-        X_list_action = []
+        label_list = []
+        feature_list_obs = []
+        feature_list_action = []
 
         for training_data_dict in training_data_list:
             old_qval = self._predict(
@@ -192,27 +191,29 @@ class DQNAgent(object):
                 self.network
             )
             best_action = np.argmax(new_qval)
-            maxQ = new_qval[best_action]
-            Y = np.zeros((1, self.nbr_action))
-            Y[:] = old_qval[:]
+            max_q = new_qval[best_action]
+            current_label = np.zeros((1, self.nbr_action))
+            current_label[:] = old_qval[:]
             done = training_data_dict['done']
-            update = training_data_dict['reward'] + (gamma * maxQ)*(1-done)
-            Y[0][training_data_dict['action_taken'][-1]] = update
-            Y_list.append(Y)
-            X_list_obs.append(training_data_dict['obs'][..., :-1])
-            X_list_action.append(training_data_dict['action_taken'][..., :-1])
+            update = training_data_dict['reward'] + (gamma * max_q)*(1-done)
+            current_label[0][training_data_dict['action_taken'][-1]] = update
+            label_list.append(current_label)
+            feature_list_obs.append(training_data_dict['obs'][..., :-1])
+            feature_list_action.append(
+                training_data_dict['action_taken'][..., :-1]
+            )
 
-        Y = np.concatenate(Y_list)
+        label = np.concatenate(label_list)
 
-        input_obs = np.stack(X_list_obs)
+        input_obs = np.stack(feature_list_obs)
         if self.use_actions:
             input_action = [
                 self._format_action_input(action)
-                for action in X_list_action
+                for action in feature_list_action
             ]
             input_action = np.concatenate(input_action)
-            X = [input_obs, input_action]
+            feature = [input_obs, input_action]
         else:
-            X = input_obs
+            feature = input_obs
 
-        return X, Y
+        return feature, label
