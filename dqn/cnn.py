@@ -65,9 +65,6 @@ class ConvNet:
         layer = Conv2D(64, 3, 3, subsample=(1, 1), init=my_init)(layer)
         layer = Activation('relu')(layer)
         layer = Flatten()(layer)
-        layer = Dense(512, init=my_init)(layer)
-        layer = Activation('relu')(layer)
-
         # Add the action history if specified
         if self.use_actions:
             action_input = Input(
@@ -75,7 +72,8 @@ class ConvNet:
             )
             layer = merge([layer, action_input], mode='concat')
             model_input = [model_input, action_input]
-
+        layer = Dense(512, init=my_init)(layer)
+        layer = Activation('relu')(layer)
         output_layer = Dense(self.nbr_action, init=my_init)(layer)
         model = Model(input=model_input, output=output_layer)
         if self.print_model:

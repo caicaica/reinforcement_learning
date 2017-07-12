@@ -59,8 +59,6 @@ class ProcessedEnvironnement:
 
         if done:
             reward = -1
-        if reward == 0:
-            reward = 0.1
         reward = np.clip(reward, -1, 1)
 
         return ob, reward, done, info
